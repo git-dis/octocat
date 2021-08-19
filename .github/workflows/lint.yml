@@ -11,32 +11,32 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BOT_TOKEN: octocat  # Dummy variable
-      
+
       # Confugre pip to cache dependencies and do a user install
       PIP_NO_CACHE_DIR: false
       PIP_USER: 1
-      
+
       # Make sure Poetry does not create a virtualenv
       POETRY_VIRTUALENVS_CREATE: false
-      
+
       POETRY_CACHE_DIR: ${{ github.workspace }}/.cache/py-user-base
       PYTHONUSERBASE: ${{ github.workspace }}/.cache/py-user-base
       PRE_COMMIT_HOME: ${{ github.workspace }}/.cache/pre-commit-cache
- 
+
     steps:
-      
+
       - name: Add custom PYTHONUSERBASE to PATH
         run: echo "${{ env.PYTHONUSERBASE }}/bin/" >> $GITHUB_PATH
-    
+
       - name: Checkout repository
         uses: actions/checkout@v2
-      
+
       - name: Setup Python
         id: python
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
-          
+
       - name: Cache Python dependencies
         uses: actions/cache@v2
         id: python_cache
@@ -45,13 +45,13 @@ jobs:
           key: "python-0-${{ runner.os }}-${{ env.PYTHONUSERBASE }}-\
           ${{ steps.python.outputs.python-version }}-\
           ${{ hashFiles('./pyproject.toml', './poetry.lock') }}"
-          
+
       - name: Install Python dependencies
         if: steps.python_cache.outputs.cache_hit != true
         run: |
           pip install poetry
           poetry install
-          
+
       - name: Cache pre-commit environment
         uses: actions/cache@v2
         with:
@@ -59,15 +59,15 @@ jobs:
           key: "precommit-0-${{ runner.os }}-${{ env.PRE_COMMIT_HOME }}-\
           ${{ steps.python.outputs.python-version }}-\
           ${{ hashFiles('./.pre-commit-config.yaml') }}"
-          
+
       - name: Run pre-commit hooks
         run: export PIP_USER=0; SKIP=flake8 pre-commit run --all-files
-        
+
       - name: Lint with flake8
         run: "flake8 \
         --format='::error file=%(path)s,line=%(row)d,col=%(col)d::\
         [flake8] %(code)s: %(text)s'"
-        
+
       - name: Prepare Pull Request Payload artifact
         id: prepare-artifact
         if: always() && github.event_name == 'pull_request'
