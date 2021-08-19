@@ -1,3 +1,4 @@
+"""Module containing core bot base for Octocat."""
 from typing import Any
 
 from discord.ext import commands
@@ -9,6 +10,7 @@ from octocat.extensions import find_extensions
 
 
 class Octocat(Bot):
+    """Core bot class for Octocat."""
 
     def __init__(self, *args: list[Any], **kwargs: dict[str, Any]) -> None:
         config = {
@@ -21,6 +23,7 @@ class Octocat(Bot):
         super().__init__(*args, **kwargs)
 
     async def on_ready(self) -> None:
+        """Load all extensions."""
         logger.info(f"Logged in <red>{self.user}</>")
 
         for path, extension in find_extensions():
@@ -29,7 +32,7 @@ class Octocat(Bot):
             # noinspection PyBroadException
             try:
                 self.load_extension(extension)
-            except:
+            except Exception:
                 logger.exception(
                     f"Failed to load extension <magenta>{path.stem}</> "
                     f"from <magenta>{path.parent}</>",
