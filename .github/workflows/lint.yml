@@ -47,7 +47,7 @@ jobs:
           ${{ hashFiles('./pyproject.toml', './poetry.lock') }}"
           
       - name: Install Python dependencies
-        if: steps.python_cache.outputs.cache_hit != "true"
+        if: steps.python_cache.outputs.cache_hit != true
         run: |
           pip install poetry
           poetry install
