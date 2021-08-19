@@ -131,3 +131,6 @@ dmypy.json
 # Editing environments
 .idea
 .vscode
+
+# MacOS auto-generated
+.DS_STORE
