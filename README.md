@@ -1,5 +1,7 @@
 # Octocat Discord Bot
 
+![](https://img.shields.io/github/workflow/status/gh-discord/octocat/Lint?label=Lint&logo=github&style=flat-square)
+
 This project is a Discord bot vital to our community over
 at the [Github Discord Server](https://discord.gg/h4RJn854y9).
 It provides numerous utilities needed by our community in order
