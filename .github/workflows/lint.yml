@@ -29,7 +29,7 @@ jobs:
         run: echo "${{ env.PYTHONUSERBASE }}/bin/" >> $GITHUB_PATH
     
       - name: Checkout repository
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
       
       - name: Setup Python
         id: python
