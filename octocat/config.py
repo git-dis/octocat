@@ -1,5 +1,7 @@
 """Configuration file for Octocat."""
-from pydantic import BaseSettings, BaseModel 
+from pydantic import (
+    BaseModel, BaseSettings
+)
 
 
 class Colour(BaseModel):
@@ -29,4 +31,3 @@ class Settings(BaseSettings):
 
 
 CONFIG = Settings()
-
