@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  workflow_run:
+    workflows:
+      - Lint
+    types:
+      - completed
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    name: Build & Push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN  }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          cache-from: type=registry,ref=ghcr.io/gh-discord/octocat:latest
+          cache-to: type=inline
+          tags: |
+            ghcr.io/gh-discord/octocat:latest
