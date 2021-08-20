@@ -29,3 +29,4 @@ class Settings(BaseSettings):
 
 
 CONFIG = Settings()
+
