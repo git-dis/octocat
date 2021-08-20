@@ -1,11 +1,9 @@
 name: Build
 
 on:
-  workflow_run:
-    workflows:
-      - Lint
-    types:
-      - completed
+  push:
+    branches:
+      - main
 
 jobs:
   build:
