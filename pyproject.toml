@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "Octocat"
+version = "0.1.0"
+description = "A Discord bot vital to our community"
+authors = ["GitHub Discord <noreply@vivaanverma.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+disnake = "^2.3.0"
+loguru = "^0.5.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
