@@ -1,8 +1,8 @@
 """Module containing core bot base for Octocat."""
 from typing import Any
 
-from discord.ext import commands
-from discord.ext.commands import Bot
+from disnake.ext import commands
+from disnake.ext.commands import Bot
 
 from octocat import logger
 from octocat.config import CONFIG
