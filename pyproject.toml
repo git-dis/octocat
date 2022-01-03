@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "Octocat"
+name = "octocat"
 version = "0.1.0"
 description = "A Discord bot vital to our community"
 authors = ["GitHub Discord <noreply@vivaanverma.com>"]
@@ -9,6 +9,8 @@ license = "MIT"
 python = "^3.9"
 disnake = "^2.3.0"
 loguru = "^0.5.3"
+pydantic = { version = "^1.9.0", extras = [ "dotenv" ] }
+aiohttp = "^3.8.1"
 
 [tool.poetry.dev-dependencies]
 
