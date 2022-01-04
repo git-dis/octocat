@@ -1,33 +1,32 @@
-"""Configuration file for Octocat."""
-from pydantic import (
-    BaseModel, BaseSettings
-)
+from pathlib import Path
+from typing import NamedTuple
 
+from pydantic import BaseSettings, Field
 
-class Colour(BaseModel):
-    """Dataclass of colours for Octocat."""
-
-    primary: int = 0xf34f29    # Git orange
-    secondary: int = 0xffffff  # White
-    success: int = 0x2ecc71    # Light green
-    warning: int = 0xf1c40f    # Strong yellow
-    danger: int = 0xe74c3c     # Strong red
-
-
-class Settings(BaseSettings):
-    """Configuration for Octocat."""
-
+class OctocatConfig(BaseSettings):
     token: str
-    prefix: str = "!"
 
-    colour: Colour = Colour()
+    extension_filepath: Path = Path(__file__).parent / "exts"
 
     class Config:
-        """Reads configuration secrets from .env file."""
+        env_file = '.env'
+        env_prefix = 'OCTOCAT_'
 
-        env_file = ".env"
-        env_prefix = "OCTOCAT_"
-        case_sensitive = False
+CONFIG = OctocatConfig()
 
+class Roles(NamedTuple):
+    administrator: int = 856288946094080000
+    moderator: int = 856289049148784640
+    helper: int = 857010097913987093    
 
-CONFIG = Settings()
+class Colour(NamedTuple):
+    red: int = 0xFF0000
+    green: int = 0x00FF00
+    blue: int = 0x0000FF
+    yellow: int = 0xFFFF00
+    purple: int = 0xFF00FF
+    cyan: int = 0x00FFFF
+    white: int = 0xFFFFFF
+    black: int = 0x000000
+
+Color = Colour  # Alias for Americans
