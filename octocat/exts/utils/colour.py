@@ -11,7 +11,7 @@ import rapidfuzz
 from PIL import Image, ImageColor
 from disnake.ext import commands
 
-from bot.bot import Bot
+from octocat.octocat import Octocat
 from bot.exts.core.extensions import invoke_help_command
 
 THUMBNAIL_SIZE = (80, 80)
@@ -54,10 +54,10 @@ class Colour(commands.Cog):
         else:
             colour_mode = colour_mode.title()
 
-        colour_embed = discord.Embed(
+        colour_embed = disnake.Embed(
             title=f"{name or input_colour}",
             description=f"{colour_or_color.title()} information for {colour_mode} `{input_colour or name}`.",
-            colour=discord.Color.from_rgb(*rgb)
+            colour=disnake.Color.from_rgb(*rgb)
         )
         colour_conversions = self.get_colour_conversions(rgb)
         for colour_space, value in colour_conversions.items():
@@ -71,7 +71,7 @@ class Colour(commands.Cog):
         buffer = BytesIO()
         thumbnail.save(buffer, "PNG")
         buffer.seek(0)
-        thumbnail_file = discord.File(buffer, filename="colour.png")
+        thumbnail_file = disnake.File(buffer, filename="colour.png")
 
         colour_embed.set_thumbnail(url="attachment://colour.png")
 
@@ -92,7 +92,12 @@ class Colour(commands.Cog):
             extra_colour = ImageColor.getrgb(colour_input)
             await self.send_colour_response(ctx, extra_colour)
         except ValueError:
-            await invoke_help_command(ctx)
+            error_embed = disnake.Embed(
+                title="Error!",
+                description="Something has gone wrong",
+                colour=disnake.Color.from_rgb(*rgb)
+            )
+            await ctx.send(embed=error_embed)
 
     @colour.command()
     async def rgb(self, ctx: commands.Context, red: int, green: int, blue: int) -> None:
@@ -160,10 +165,10 @@ class Colour(commands.Cog):
         """Create an embed from a name input."""
         hex_colour = self.match_colour_name(ctx, user_colour_name)
         if hex_colour is None:
-            name_error_embed = discord.Embed(
+            name_error_embed = disnake.Embed(
                 title="No colour match found.",
                 description=f"No colour found for: `{user_colour_name}`",
-                colour=discord.Color.dark_red()
+                colour=disnake.Color.dark_red()
             )
             await ctx.send(embed=name_error_embed)
             return
@@ -254,6 +259,6 @@ class Colour(commands.Cog):
         return f"#{self.colour_mapping[match]}"
 
 
-def setup(bot: Bot) -> None:
+def setup(bot: Octocat) -> None:
     """Load the Colour cog."""
     bot.add_cog(Colour(bot))
