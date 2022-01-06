@@ -16,6 +16,9 @@ class Octocat(commands.Bot):
         super().__init__(
             intents=intents,
             sync_commands_debug=True,
+            test_guilds=[
+                792953183630655509,
+            ],
         )
 
         self.loop.create_task(self.setup())
@@ -35,6 +38,7 @@ class Octocat(commands.Bot):
         #     self.load_extension(qualified_name)
         #     logger.info(f"Loaded extension {qualified_name}")
         self.load_extension("octocat.exts.utils.status")
+        self.load_extension("octocat.exts.utils.colour")
         logger.success("Loaded all extensions successfully")
 
     def run(self) -> None:

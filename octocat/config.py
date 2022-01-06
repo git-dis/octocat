@@ -1,7 +1,17 @@
 from pathlib import Path
 from typing import NamedTuple
 
+#import pyyaml
+from loguru import logger
 from pydantic import BaseSettings, Field
+
+
+cwd = Path(".")
+files = [f for f in cwd.glob("*.*")]
+if "PosixPath('config.yaml')" in files:
+    logger.debug("Found custom config.")
+    #custom_config = pyyaml.parse("config.yaml").read()
+    #logger.debug("Parsed custom config.")
 
 class OctocatConfig(BaseSettings):
     token: str
