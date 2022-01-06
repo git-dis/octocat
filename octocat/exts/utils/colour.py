@@ -10,9 +10,9 @@ import disnake
 import rapidfuzz
 from PIL import Image, ImageColor
 from disnake.ext import commands
+from loguru import logger
 
 from octocat.octocat import Octocat
-from bot.exts.core.extensions import invoke_help_command
 
 THUMBNAIL_SIZE = (80, 80)
 
@@ -20,43 +20,27 @@ THUMBNAIL_SIZE = (80, 80)
 class Colour(commands.Cog):
     """Cog for the Colour command."""
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Octocat):
         self.bot = bot
-        with open(pathlib.Path("bot/resources/utilities/ryanzec_colours.json")) as f:
+        with open(pathlib.Path("octocat/exts/utils/ryanzec_colours.json")) as f:
             self.colour_mapping = json.load(f)
             del self.colour_mapping['_']  # Delete source credit entry
 
-    async def send_colour_response(self, ctx: commands.Context, rgb: tuple[int, int, int]) -> None:
+    async def send_colour_response(self, inter: disnake.AppCmdInter, rgb: tuple[int, int, int]) -> None:
         """Create and send embed from user given colour information."""
         name = self._rgb_to_name(rgb)
-        try:
-            colour_or_color = ctx.invoked_parents[0]
-        except IndexError:
-            colour_or_color = "colour"
 
-        colour_mode = ctx.invoked_with
-        if colour_mode == "random":
-            colour_mode = colour_or_color
-            input_colour = name
-        elif colour_mode in ("colour", "color"):
-            input_colour = ctx.kwargs["colour_input"]
-        elif colour_mode == "name":
-            input_colour = ctx.kwargs["user_colour_name"]
-        elif colour_mode == "hex":
-            input_colour = ctx.args[2:][0]
-            if len(input_colour) > 7:
-                input_colour = input_colour[0:-2]
-        else:
-            input_colour = tuple(ctx.args[2:])
-
-        if colour_mode not in ("name", "hex", "random", "color", "colour"):
-            colour_mode = colour_mode.upper()
-        else:
-            colour_mode = colour_mode.title()
+        interaction_details = inter.filled_options
+        more_deets = inter.options
+        logger.debug(f"{more_deets = }")
+        subcommand = list(more_deets)[0]
+        logger.debug(f"{subcommand = }")
+        values = more_deets[subcommand]
+        logger.debug(f"{values}")
 
         colour_embed = disnake.Embed(
-            title=f"{name or input_colour}",
-            description=f"{colour_or_color.title()} information for {colour_mode} `{input_colour or name}`.",
+            title=f"{name or 'Color information'}",
+            description=f"Color information for command {subcommand} with {values}",
             colour=disnake.Color.from_rgb(*rgb)
         )
         colour_conversions = self.get_colour_conversions(rgb)
@@ -75,42 +59,30 @@ class Colour(commands.Cog):
 
         colour_embed.set_thumbnail(url="attachment://colour.png")
 
-        await ctx.send(file=thumbnail_file, embed=colour_embed)
+        await inter.response.send_message(file=thumbnail_file, embed=colour_embed)
 
-    @commands.group(aliases=("color",), invoke_without_command=True)
-    async def colour(self, ctx: commands.Context, *, colour_input: Optional[str] = None) -> None:
+    @commands.slash_command(description="Create a color embed")
+    async def colour(self, inter: disnake.AppCmdInter) -> None:
         """
         Create an embed that displays colour information.
 
         If no subcommand is called, a randomly selected colour will be shown.
         """
-        if colour_input is None:
-            await self.random(ctx)
-            return
+        pass
 
-        try:
-            extra_colour = ImageColor.getrgb(colour_input)
-            await self.send_colour_response(ctx, extra_colour)
-        except ValueError:
-            error_embed = disnake.Embed(
-                title="Error!",
-                description="Something has gone wrong",
-                colour=disnake.Color.from_rgb(*rgb)
-            )
-            await ctx.send(embed=error_embed)
 
-    @colour.command()
-    async def rgb(self, ctx: commands.Context, red: int, green: int, blue: int) -> None:
+    @colour.sub_command()
+    async def rgb(self, inter: disnake.AppCmdInter, red: int, green: int, blue: int) -> None:
         """Create an embed from an RGB input."""
         if any(c not in range(256) for c in (red, green, blue)):
             raise commands.BadArgument(
                 message=f"RGB values can only be from 0 to 255. User input was: `{red, green, blue}`."
             )
         rgb_tuple = (red, green, blue)
-        await self.send_colour_response(ctx, rgb_tuple)
+        await self.send_colour_response(inter, rgb_tuple)
 
-    @colour.command()
-    async def hsv(self, ctx: commands.Context, hue: int, saturation: int, value: int) -> None:
+    @colour.sub_command()
+    async def hsv(self, inter: disnake.AppCmdInter, hue: int, saturation: int, value: int) -> None:
         """Create an embed from an HSV input."""
         if (hue not in range(361)) or any(c not in range(101) for c in (saturation, value)):
             raise commands.BadArgument(
@@ -118,10 +90,10 @@ class Colour(commands.Cog):
                 f"User input was: `{hue, saturation, value}`."
             )
         hsv_tuple = ImageColor.getrgb(f"hsv({hue}, {saturation}%, {value}%)")
-        await self.send_colour_response(ctx, hsv_tuple)
+        await self.send_colour_response(inter, hsv_tuple)
 
-    @colour.command()
-    async def hsl(self, ctx: commands.Context, hue: int, saturation: int, lightness: int) -> None:
+    @colour.sub_command()
+    async def hsl(self, inter: disnake.AppCmdInter, hue: int, saturation: int, lightness: int) -> None:
         """Create an embed from an HSL input."""
         if (hue not in range(361)) or any(c not in range(101) for c in (saturation, lightness)):
             raise commands.BadArgument(
@@ -129,10 +101,10 @@ class Colour(commands.Cog):
                 f"User input was: `{hue, saturation, lightness}`."
             )
         hsl_tuple = ImageColor.getrgb(f"hsl({hue}, {saturation}%, {lightness}%)")
-        await self.send_colour_response(ctx, hsl_tuple)
+        await self.send_colour_response(inter, hsl_tuple)
 
-    @colour.command()
-    async def cmyk(self, ctx: commands.Context, cyan: int, magenta: int, yellow: int, key: int) -> None:
+    @colour.sub_command()
+    async def cmyk(self, inter: disnake.AppCmdInter, cyan: int, magenta: int, yellow: int, key: int) -> None:
         """Create an embed from a CMYK input."""
         if any(c not in range(101) for c in (cyan, magenta, yellow, key)):
             raise commands.BadArgument(
@@ -141,10 +113,10 @@ class Colour(commands.Cog):
         r = round(255 * (1 - (cyan / 100)) * (1 - (key / 100)))
         g = round(255 * (1 - (magenta / 100)) * (1 - (key / 100)))
         b = round(255 * (1 - (yellow / 100)) * (1 - (key / 100)))
-        await self.send_colour_response(ctx, (r, g, b))
+        await self.send_colour_response(inter, (r, g, b))
 
-    @colour.command()
-    async def hex(self, ctx: commands.Context, hex_code: str) -> None:
+    @colour.sub_command()
+    async def hex(self, inter: disnake.AppCmdInter, hex_code: str) -> None:
         """Create an embed from a HEX input."""
         if hex_code[0] != "#":
             hex_code = f"#{hex_code}"
@@ -158,29 +130,29 @@ class Colour(commands.Cog):
         hex_tuple = ImageColor.getrgb(hex_code)
         if len(hex_tuple) == 4:
             hex_tuple = hex_tuple[:-1]  # Colour must be RGB. If RGBA, we remove the alpha value
-        await self.send_colour_response(ctx, hex_tuple)
+        await self.send_colour_response(inter, hex_tuple)
 
-    @colour.command()
-    async def name(self, ctx: commands.Context, *, user_colour_name: str) -> None:
+    @colour.sub_command()
+    async def name(self, inter: disnake.AppCmdInter, *, user_colour_name: str) -> None:
         """Create an embed from a name input."""
-        hex_colour = self.match_colour_name(ctx, user_colour_name)
+        hex_colour = self.match_colour_name(inter, user_colour_name)
         if hex_colour is None:
             name_error_embed = disnake.Embed(
                 title="No colour match found.",
                 description=f"No colour found for: `{user_colour_name}`",
                 colour=disnake.Color.dark_red()
             )
-            await ctx.send(embed=name_error_embed)
+            await inter.response.send_message(embed=name_error_embed)
             return
         hex_tuple = ImageColor.getrgb(hex_colour)
-        await self.send_colour_response(ctx, hex_tuple)
+        await self.send_colour_response(inter, hex_tuple)
 
-    @colour.command()
-    async def random(self, ctx: commands.Context) -> None:
+    @colour.sub_command()
+    async def random(self, inter: disnake.AppCmdInter) -> None:
         """Create an embed from a randomly chosen colour."""
         hex_colour = random.choice(list(self.colour_mapping.values()))
         hex_tuple = ImageColor.getrgb(f"#{hex_colour}")
-        await self.send_colour_response(ctx, hex_tuple)
+        await self.send_colour_response(inter, hex_tuple)
 
     def get_colour_conversions(self, rgb: tuple[int, int, int]) -> dict[str, str]:
         """Create a dictionary mapping of colour types and their values."""
@@ -246,7 +218,7 @@ class Colour(commands.Cog):
             colour_name = None
         return colour_name
 
-    def match_colour_name(self, ctx: commands.Context, input_colour_name: str) -> Optional[str]:
+    def match_colour_name(self, ctx: disnake.AppCmdInter, input_colour_name: str) -> Optional[str]:
         """Convert a colour name to HEX code."""
         try:
             match, certainty, _ = rapidfuzz.process.extractOne(
